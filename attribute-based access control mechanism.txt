@@ -1,0 +1,52 @@
+class AttributeAuthority:
+    def get_attribute(self, user_id, attribute_name):
+        attribute_value = None
+        if attribute_name == 'role':
+            attribute_value = self.get_user_role_from_database(user_id)
+        elif attribute_name == 'department':
+            attribute_value = self.get_user_department_from_external_service(user_id)
+        return attribute_value
+
+    def get_user_role_from_database(self, user_id):
+        roles = {
+            'user1': 'Manager',
+            'user2': 'Employee'
+        }
+        return roles.get(user_id, None)
+
+    def get_user_department_from_external_service(self, user_id):
+        departments = {
+            'user1': 'Sales',
+            'user2': 'Marketing'
+        }
+        return departments.get(user_id, None)
+
+
+def check_access(user_id, resource_id, action):
+    attribute_authority = AttributeAuthority()
+    access_control_policies = [
+        {
+            'role': 'Manager',
+            'department': 'Sales',
+            'resource': 'sales data',
+            'action': 'read'
+        },
+        {
+            'role': 'Admin',
+            'resource': 'admin_panel',
+            'action': 'write'
+        }
+    ]
+    user_role = attribute_authority.get_attribute(user_id, 'role')
+    user_department = attribute_authority.get_attribute(user_id, 'department')
+
+    for policy in access_control_policies:
+        if policy['resource'] == resource_id and policy['action'] == action:
+            if (policy.get('role') is None or policy['role'] == user_role) and \
+               (policy.get('department') is None or policy['department'] == user_department):
+                return True
+    return False
+
+
+can_read = check_access('user1', 'sales data', 'read')
+print('User can read:', can_read)
